@@ -1,6 +1,8 @@
 # 黎環 / Reikan
 
 > **AI-First OS — A Next-Generation Operating System**
+>
+> 日本語版は [README.ja.md](README.ja.md) をご覧ください。
 
 ---
 

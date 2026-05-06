@@ -1,5 +1,7 @@
 # Contributing to Reikan (黎環)
 
+> 日本語版は [CONTRIBUTING.ja.md](CONTRIBUTING.ja.md) をご覧ください。
+
 Thank you for your interest in contributing to **黎環 / Reikan** — an AI-First operating system project.
 
 ---

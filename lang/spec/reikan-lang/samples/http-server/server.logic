@@ -1,0 +1,106 @@
+logic module server.logic;
+
+import core.result;
+import core.types;
+import server.types;
+
+// ──────────────────────────────────────────
+// Router
+// ──────────────────────────────────────────
+
+// routeRequest dispatches an incoming request to the appropriate handler.
+// All named types are from server.types; no bare primitives are used here.
+func routeRequest(req: HttpRequest) -> HttpResponse {
+    if req.path == HttpPath::from("/health") {
+        return handleHealth(req);
+    }
+    if req.path == HttpPath::from("/") {
+        return handleRoot(req);
+    }
+    if req.path.starts_with(HttpPath::from("/users")) {
+        return routeUsers(req);
+    }
+    return HttpResponse::not_found();
+}
+
+// ──────────────────────────────────────────
+// Route handlers
+// ──────────────────────────────────────────
+
+func handleHealth(req: HttpRequest) -> HttpResponse {
+    if req.method != HttpMethod::from("GET") {
+        return HttpResponse::method_not_allowed(HttpMethod::from("GET"));
+    }
+    return HttpResponse::json_ok(HttpBody::from("{\"status\":\"ok\"}"));
+}
+
+func handleRoot(req: HttpRequest) -> HttpResponse {
+    if req.method != HttpMethod::from("GET") {
+        return HttpResponse::method_not_allowed(HttpMethod::from("GET"));
+    }
+    return HttpResponse::json_ok(HttpBody::from("{\"service\":\"reikan-http-example\",\"version\":\"0.1.0\"}"));
+}
+
+func routeUsers(req: HttpRequest) -> HttpResponse {
+    if req.method == HttpMethod::from("GET") {
+        return handleGetUsers(req);
+    }
+    if req.method == HttpMethod::from("POST") {
+        return handleCreateUser(req);
+    }
+    return HttpResponse::method_not_allowed(HttpMethod::from("GET, POST"));
+}
+
+func handleGetUsers(req: HttpRequest) -> HttpResponse {
+    // In a real application this would call the UserRepository via context injection.
+    // This example demonstrates the pattern without external dependencies.
+    let body: HttpBody := HttpBody::from("{\"users\":[]}");
+    return HttpResponse::json_ok(body);
+}
+
+func handleCreateUser(req: HttpRequest) -> HttpResponse {
+    if req.body.len() == 0 {
+        return HttpResponse::bad_request("request body must not be empty");
+    }
+    // Body parsing and user creation are delegated to domain logic.
+    // The response would include the created user in a real application.
+    let body: HttpBody := HttpBody::from("{\"created\":true}");
+    return HttpResponse::json_ok(body);
+}
+
+// ──────────────────────────────────────────
+// Server lifecycle
+// ──────────────────────────────────────────
+
+func startServer(config: ServerConfig) -> Result<Unit, RouteError> {
+    let listener: core.net.TcpListener := core.net.TcpListener::bind(
+        config.host.into_inner(),
+        config.port.into_inner(),
+    )?;
+    loop {
+        let conn: core.net.TcpConnection := listener.accept()?;
+        core.task.spawn(handleConnection(conn, config));
+    }
+}
+
+func handleConnection(
+    conn: core.net.TcpConnection,
+    config: ServerConfig,
+) -> Result<Unit, RouteError> {
+    let raw_req: core.net.Bytes := conn.read_timeout(config.read_timeout)?;
+    let req: HttpRequest := parseRequest(raw_req)?;
+    let resp: HttpResponse := routeRequest(req);
+    let raw_resp: core.net.Bytes := serializeResponse(resp);
+    conn.write_timeout(raw_resp, config.write_timeout)?;
+    return Ok(Unit);
+}
+
+func parseRequest(raw: core.net.Bytes) -> Result<HttpRequest, RouteError> {
+    // HTTP/1.1 request parsing — implementation omitted in this example.
+    return Err(RouteError::InternalError);
+}
+
+func serializeResponse(resp: HttpResponse) -> core.net.Bytes {
+    // HTTP/1.1 response serialization — implementation omitted in this example.
+    return core.net.Bytes::empty();
+}

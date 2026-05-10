@@ -1,0 +1,75 @@
+type module user.types;
+
+import core.types;
+
+// ──────────────────────────────────────────
+// Primitive type aliases — this is the ONLY
+// place where raw primitive types may appear.
+// ──────────────────────────────────────────
+
+type UserId = u64;
+type UserName = str;
+type UserAge = u8;
+type UserEmail = str;
+type UserMessage = str;
+
+// ──────────────────────────────────────────
+// Composite types
+// ──────────────────────────────────────────
+
+type User struct {
+    id:    UserId;
+    name:  UserName;
+    age:   UserAge;
+    email: UserEmail;
+}
+
+type UserPatch struct {
+    name:  UserName;
+    age:   UserAge;
+    email: UserEmail;
+}
+
+type UserError enum {
+    NotFound;
+    InvalidInput(message: UserMessage);
+    StorageFailure;
+    AlreadyExists;
+}
+
+// ──────────────────────────────────────────
+// Method implementations
+// ──────────────────────────────────────────
+
+impl UserId {
+    func generate() -> UserId {
+        return UserId::from(core.random.u64());
+    }
+
+    func from_raw(raw: u64) -> UserId {
+        return UserId::from(raw);
+    }
+}
+
+impl UserName {
+    func len(&self) -> usize {
+        return self.into_inner().len();
+    }
+}
+
+impl UserAge {
+    func is_adult(&self) -> bool {
+        return self.into_inner() >= 18u8;
+    }
+}
+
+impl User {
+    func apply_patch(self, patch: UserPatch) -> User {
+        return User {
+            id:    self.id,
+            name:  patch.name,
+            age:   patch.age,
+            email: patch.email,
+        };
+    }
+}

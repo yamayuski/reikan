@@ -1,0 +1,58 @@
+type module cli.types;
+
+import core.types;
+
+// ──────────────────────────────────────────
+// Argument and flag types
+// ──────────────────────────────────────────
+
+type CliArg = str;
+type CliFlag = str;
+type ExitCode = i32;
+type ProgramName = str;
+type HelpText = str;
+type ErrorMessage = str;
+
+// ──────────────────────────────────────────
+// Command structure
+// ──────────────────────────────────────────
+
+type Command enum {
+    Help;
+    Version;
+    Echo(text: CliArg);
+    Greet(name: CliArg);
+    Unknown(input: CliArg);
+}
+
+type CliResult enum {
+    Success(message: HelpText);
+    Failure(code: ExitCode, message: ErrorMessage);
+}
+
+// ──────────────────────────────────────────
+// Method implementations
+// ──────────────────────────────────────────
+
+impl ExitCode {
+    func success() -> ExitCode {
+        return ExitCode::from(0i32);
+    }
+
+    func failure() -> ExitCode {
+        return ExitCode::from(1i32);
+    }
+
+    func is_success(&self) -> bool {
+        return self.into_inner() == 0i32;
+    }
+}
+
+impl CliResult {
+    func exit_code(&self) -> ExitCode {
+        match self {
+            CliResult::Success(_) => { return ExitCode::success(); }
+            CliResult::Failure(code, _) => { return code; }
+        }
+    }
+}

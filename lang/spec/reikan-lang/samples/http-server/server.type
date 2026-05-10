@@ -1,0 +1,144 @@
+type module server.types;
+
+import core.types;
+
+// ──────────────────────────────────────────
+// Network primitives
+// ──────────────────────────────────────────
+
+type IpAddress = str;
+type TcpPort = u16;
+type HttpMethod = str;
+type HttpPath = str;
+type HttpStatus = u16;
+type HttpBody = str;
+type ContentType = str;
+type HeaderName = str;
+type HeaderValue = str;
+type RequestId = u64;
+
+// ──────────────────────────────────────────
+// Request / Response types
+// ──────────────────────────────────────────
+
+type HttpHeader struct {
+    name:  HeaderName;
+    value: HeaderValue;
+}
+
+type HttpRequest struct {
+    id:      RequestId;
+    method:  HttpMethod;
+    path:    HttpPath;
+    headers: [HttpHeader];
+    body:    HttpBody;
+}
+
+type HttpResponse struct {
+    status:   HttpStatus;
+    headers:  [HttpHeader];
+    body:     HttpBody;
+}
+
+// ──────────────────────────────────────────
+// Server configuration
+// ──────────────────────────────────────────
+
+type ServerConfig struct {
+    host:            IpAddress;
+    port:            TcpPort;
+    max_connections: u32;
+    read_timeout:    u32;
+    write_timeout:   u32;
+}
+
+// ──────────────────────────────────────────
+// Route result
+// ──────────────────────────────────────────
+
+type RouteError enum {
+    NotFound;
+    MethodNotAllowed(allowed: HttpMethod);
+    BadRequest(message: str);
+    InternalError;
+}
+
+// ──────────────────────────────────────────
+// Method implementations
+// ──────────────────────────────────────────
+
+impl HttpStatus {
+    func ok() -> HttpStatus {
+        return HttpStatus::from(200u16);
+    }
+
+    func not_found() -> HttpStatus {
+        return HttpStatus::from(404u16);
+    }
+
+    func method_not_allowed() -> HttpStatus {
+        return HttpStatus::from(405u16);
+    }
+
+    func bad_request() -> HttpStatus {
+        return HttpStatus::from(400u16);
+    }
+
+    func internal_error() -> HttpStatus {
+        return HttpStatus::from(500u16);
+    }
+}
+
+impl RequestId {
+    func generate() -> RequestId {
+        return RequestId::from(core.random.u64());
+    }
+}
+
+impl HttpResponse {
+    func json_ok(body: HttpBody) -> HttpResponse {
+        return HttpResponse {
+            status:  HttpStatus::ok(),
+            headers: [HttpHeader {
+                name:  HeaderName::from("Content-Type"),
+                value: HeaderValue::from("application/json"),
+            }],
+            body: body,
+        };
+    }
+
+    func not_found() -> HttpResponse {
+        return HttpResponse {
+            status:  HttpStatus::not_found(),
+            headers: [],
+            body:    HttpBody::from("{\"error\":\"not found\"}"),
+        };
+    }
+
+    func method_not_allowed(allowed: HttpMethod) -> HttpResponse {
+        return HttpResponse {
+            status:  HttpStatus::method_not_allowed(),
+            headers: [HttpHeader {
+                name:  HeaderName::from("Allow"),
+                value: HeaderValue::from(allowed.into_inner()),
+            }],
+            body: HttpBody::from("{\"error\":\"method not allowed\"}"),
+        };
+    }
+
+    func bad_request(message: str) -> HttpResponse {
+        return HttpResponse {
+            status:  HttpStatus::bad_request(),
+            headers: [],
+            body:    HttpBody::from(core.string.concat("{\"error\":\"", message, "\"}")),
+        };
+    }
+
+    func internal_error() -> HttpResponse {
+        return HttpResponse {
+            status:  HttpStatus::internal_error(),
+            headers: [],
+            body:    HttpBody::from("{\"error\":\"internal server error\"}"),
+        };
+    }
+}

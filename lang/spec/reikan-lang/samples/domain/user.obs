@@ -1,0 +1,44 @@
+observe module user.observability;
+
+import user.logic;
+import user.types;
+
+// ──────────────────────────────────────────
+// Metrics — read-only, never affect logic.
+// Values are published to the observability
+// runtime ring buffer every second.
+// ──────────────────────────────────────────
+
+watch UserServiceMetrics {
+    create_latency_p50:  wall_time(createUser) at percentile(50);
+    create_latency_p99:  wall_time(createUser) at percentile(99);
+    find_latency_p99:    wall_time(findUser) at percentile(99);
+    update_latency_p99:  wall_time(updateUser) at percentile(99);
+    delete_latency_p99:  wall_time(deleteUser) at percentile(99);
+    create_error_rate:   error_count(createUser) / call_count(createUser);
+    find_error_rate:     error_count(findUser) / call_count(findUser);
+    heap_per_create:     heap_bytes(createUser) at avg;
+}
+
+// ──────────────────────────────────────────
+// Probes — capture inputs and outputs for
+// sampled request tracing. Read-only.
+// ──────────────────────────────────────────
+
+probe UserCreateProbe on createUser {
+    capture:     [name, age, result.is_ok()];
+    sample_rate: 0.01;
+    when:        always;
+}
+
+probe UserFindProbe on findUser {
+    capture:     [id, result.is_ok()];
+    sample_rate: 0.001;
+    when:        on_slow(100ms);
+}
+
+probe UserErrorProbe on createUser {
+    capture:     [name, age, result.is_ok()];
+    sample_rate: 1.0;
+    when:        on_error;
+}

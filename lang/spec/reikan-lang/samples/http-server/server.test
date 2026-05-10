@@ -1,0 +1,122 @@
+test module server.tests;
+
+import core.result;
+import server.logic;
+import server.types;
+
+// ──────────────────────────────────────────
+// Helper builders
+// ──────────────────────────────────────────
+
+func makeGetRequest(path: HttpPath) -> HttpRequest {
+    return HttpRequest {
+        id:      RequestId::generate(),
+        method:  HttpMethod::from("GET"),
+        path:    path,
+        headers: [],
+        body:    HttpBody::from(""),
+    };
+}
+
+func makePostRequest(path: HttpPath, body: HttpBody) -> HttpRequest {
+    return HttpRequest {
+        id:      RequestId::generate(),
+        method:  HttpMethod::from("POST"),
+        path:    path,
+        headers: [HttpHeader {
+            name:  HeaderName::from("Content-Type"),
+            value: HeaderValue::from("application/json"),
+        }],
+        body: body,
+    };
+}
+
+// ──────────────────────────────────────────
+// handleHealth
+// ──────────────────────────────────────────
+
+test "handleHealth GET returns 200" {
+    let req: HttpRequest := makeGetRequest(HttpPath::from("/health"));
+    let resp: HttpResponse := handleHealth(req);
+    assert resp.status == HttpStatus::ok();
+}
+
+test "handleHealth POST returns 405" {
+    let req: HttpRequest := makePostRequest(
+        HttpPath::from("/health"),
+        HttpBody::from(""),
+    );
+    let resp: HttpResponse := handleHealth(req);
+    assert resp.status == HttpStatus::method_not_allowed();
+}
+
+// ──────────────────────────────────────────
+// handleRoot
+// ──────────────────────────────────────────
+
+test "handleRoot GET returns 200 with service info" {
+    let req: HttpRequest := makeGetRequest(HttpPath::from("/"));
+    let resp: HttpResponse := handleRoot(req);
+    assert resp.status == HttpStatus::ok();
+    assert resp.body.len() > 0;
+}
+
+// ──────────────────────────────────────────
+// routeRequest
+// ──────────────────────────────────────────
+
+test "routeRequest dispatches /health to handleHealth" {
+    let req: HttpRequest := makeGetRequest(HttpPath::from("/health"));
+    let resp: HttpResponse := routeRequest(req);
+    assert resp.status == HttpStatus::ok();
+}
+
+test "routeRequest dispatches / to handleRoot" {
+    let req: HttpRequest := makeGetRequest(HttpPath::from("/"));
+    let resp: HttpResponse := routeRequest(req);
+    assert resp.status == HttpStatus::ok();
+}
+
+test "routeRequest returns 404 for unknown path" {
+    let req: HttpRequest := makeGetRequest(HttpPath::from("/nonexistent"));
+    let resp: HttpResponse := routeRequest(req);
+    assert resp.status == HttpStatus::not_found();
+}
+
+test "routeRequest dispatches /users GET to handleGetUsers" {
+    let req: HttpRequest := makeGetRequest(HttpPath::from("/users"));
+    let resp: HttpResponse := routeRequest(req);
+    assert resp.status == HttpStatus::ok();
+}
+
+test "routeRequest dispatches /users POST with empty body returns 400" {
+    let req: HttpRequest := makePostRequest(
+        HttpPath::from("/users"),
+        HttpBody::from(""),
+    );
+    let resp: HttpResponse := routeRequest(req);
+    assert resp.status == HttpStatus::bad_request();
+}
+
+test "routeRequest dispatches /users POST with body returns 200" {
+    let req: HttpRequest := makePostRequest(
+        HttpPath::from("/users"),
+        HttpBody::from("{\"name\":\"Alice\",\"age\":30}"),
+    );
+    let resp: HttpResponse := routeRequest(req);
+    assert resp.status == HttpStatus::ok();
+}
+
+// ──────────────────────────────────────────
+// Benchmarks
+// ──────────────────────────────────────────
+
+bench "routeRequest health throughput" {
+    let req: HttpRequest := makeGetRequest(HttpPath::from("/health"));
+    routeRequest(req);
+}
+
+bench "routeRequest root throughput" {
+    let req: HttpRequest := makeGetRequest(HttpPath::from("/"));
+    routeRequest(req);
+}

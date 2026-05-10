@@ -1,0 +1,87 @@
+logic module cli.logic;
+
+import cli.types;
+import core.env;
+import core.io;
+import core.result;
+
+// ──────────────────────────────────────────
+// Argument parsing
+// ──────────────────────────────────────────
+
+func parseArgs(args: [CliArg]) -> Command {
+    if args.len() == 0 {
+        return Command::Help;
+    }
+    let first: CliArg := args[0];
+    if first == CliArg::from("--help") {
+        return Command::Help;
+    }
+    if first == CliArg::from("--version") {
+        return Command::Version;
+    }
+    if first == CliArg::from("echo") {
+        if args.len() < 2 {
+            return Command::Unknown(CliArg::from("echo requires an argument"));
+        }
+        return Command::Echo(args[1]);
+    }
+    if first == CliArg::from("greet") {
+        if args.len() < 2 {
+            return Command::Unknown(CliArg::from("greet requires a name argument"));
+        }
+        return Command::Greet(args[1]);
+    }
+    return Command::Unknown(first);
+}
+
+// ──────────────────────────────────────────
+// Command dispatch
+// ──────────────────────────────────────────
+
+func dispatch(cmd: Command) -> CliResult {
+    match cmd {
+        Command::Help => {
+            return CliResult::Success(HelpText::from(
+                "Usage: mycli [--help] [--version] echo <text> | greet <name>",
+            ));
+        }
+        Command::Version => {
+            return CliResult::Success(HelpText::from("mycli v0.1.0"));
+        }
+        Command::Echo(text) => {
+            return CliResult::Success(HelpText::from(text.into_inner()));
+        }
+        Command::Greet(name) => {
+            let msg: HelpText := HelpText::from(
+                core.string.concat("Hello, ", name.into_inner(), "!"),
+            );
+            return CliResult::Success(msg);
+        }
+        Command::Unknown(input) => {
+            let msg: ErrorMessage := ErrorMessage::from(
+                core.string.concat("Unknown command: ", input.into_inner()),
+            );
+            return CliResult::Failure(ExitCode::failure(), msg);
+        }
+    }
+}
+
+// ──────────────────────────────────────────
+// Entry point
+// ──────────────────────────────────────────
+
+func main() -> ExitCode {
+    let args: [CliArg] := core.env.args();
+    let cmd: Command := parseArgs(args);
+    let result: CliResult := dispatch(cmd);
+    match result {
+        CliResult::Success(msg) => {
+            core.io.println(msg.into_inner());
+        }
+        CliResult::Failure(_, msg) => {
+            core.io.eprintln(msg.into_inner());
+        }
+    }
+    return result.exit_code();
+}

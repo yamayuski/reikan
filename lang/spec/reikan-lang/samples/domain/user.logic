@@ -1,0 +1,48 @@
+logic module user.logic;
+
+import core.result;
+import core.types;
+import user.spec;
+import user.types;
+
+// All declared types are named types from user.types.
+// Primitive types (u8, u64, str, …) are forbidden here.
+
+func createUser(
+    name:  UserName,
+    age:   UserAge,
+    email: UserEmail,
+) -> Result<User, UserError> {
+    if name.len() == 0 {
+        return Err(UserError::InvalidInput(UserMessage::from("name must not be empty")));
+    }
+    if !age.is_adult() {
+        return Err(UserError::InvalidInput(UserMessage::from("user must be 18 or older")));
+    }
+    let id: UserId := UserId::generate();
+    let user: User := User {
+        id:    id,
+        name:  name,
+        age:   age,
+        email: email,
+    };
+    return Ok(user);
+}
+
+func findUser(id: UserId) -> Result<User, UserError> {
+    // In production this dispatches to the injected UserRepository handle.
+    // The resource binding is declared in user.res and injected by the runtime.
+    return core.context.resolve(UserRepository).find(id);
+}
+
+func updateUser(id: UserId, patch: UserPatch) -> Result<User, UserError> {
+    let existing: User := findUser(id)?;
+    let updated: User := existing.apply_patch(patch);
+    core.context.resolve(UserRepository).save(updated)?;
+    return Ok(updated);
+}
+
+func deleteUser(id: UserId) -> Result<Unit, UserError> {
+    findUser(id)?;
+    return core.context.resolve(UserRepository).delete(id);
+}

@@ -1,0 +1,85 @@
+test module user.tests;
+
+import core.result;
+import user.logic;
+import user.types;
+
+// ──────────────────────────────────────────
+// createUser
+// ──────────────────────────────────────────
+
+test "createUser returns Ok for valid adult input" {
+    let name: UserName := UserName::from("Alice");
+    let age: UserAge := UserAge::from(30);
+    let email: UserEmail := UserEmail::from("alice@example.com");
+    let result: Result<User, UserError> := createUser(name, age, email);
+    assert result.is_ok();
+    let user: User := result.unwrap();
+    assert user.name == name;
+    assert user.age == age;
+    assert user.email == email;
+}
+
+test "createUser returns Err for empty name" {
+    let name: UserName := UserName::from("");
+    let age: UserAge := UserAge::from(25);
+    let email: UserEmail := UserEmail::from("bob@example.com");
+    let result: Result<User, UserError> := createUser(name, age, email);
+    assert result.is_err();
+    match result.unwrap_err() {
+        UserError::InvalidInput(msg) => { assert msg.len() > 0; }
+        _ => { assert false, "expected InvalidInput"; }
+    }
+}
+
+test "createUser returns Err for underage user" {
+    let name: UserName := UserName::from("Child");
+    let age: UserAge := UserAge::from(17);
+    let email: UserEmail := UserEmail::from("child@example.com");
+    let result: Result<User, UserError> := createUser(name, age, email);
+    assert result.is_err();
+    match result.unwrap_err() {
+        UserError::InvalidInput(msg) => { assert msg.len() > 0; }
+        _ => { assert false, "expected InvalidInput"; }
+    }
+}
+
+test "createUser assigns a non-zero id" {
+    let name: UserName := UserName::from("Carol");
+    let age: UserAge := UserAge::from(28);
+    let email: UserEmail := UserEmail::from("carol@example.com");
+    let result: Result<User, UserError> := createUser(name, age, email);
+    assert result.is_ok();
+    assert result.unwrap().id.into_inner() > 0;
+}
+
+// ──────────────────────────────────────────
+// updateUser
+// ──────────────────────────────────────────
+
+test "updateUser applies patch fields" {
+    let name: UserName := UserName::from("Dave");
+    let age: UserAge := UserAge::from(35);
+    let email: UserEmail := UserEmail::from("dave@example.com");
+    let created: User := createUser(name, age, email).unwrap();
+    let patch: UserPatch := UserPatch {
+        name:  UserName::from("David"),
+        age:   UserAge::from(36),
+        email: UserEmail::from("david@example.com"),
+    };
+    let updated: User := created.apply_patch(patch);
+    assert updated.name == UserName::from("David");
+    assert updated.age == UserAge::from(36);
+    assert updated.id == created.id;
+}
+
+// ──────────────────────────────────────────
+// Benchmarks
+// ──────────────────────────────────────────
+
+bench "createUser throughput" {
+    let name: UserName := UserName::from("BenchUser");
+    let age: UserAge := UserAge::from(30);
+    let email: UserEmail := UserEmail::from("bench@example.com");
+    createUser(name, age, email);
+}

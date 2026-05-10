@@ -1,0 +1,55 @@
+observe module server.observability;
+
+import server.logic;
+import server.types;
+
+// ──────────────────────────────────────────
+// Metrics — read-only, never affect logic.
+// ──────────────────────────────────────────
+
+watch HttpServerMetrics {
+    request_latency_p50:  wall_time(routeRequest) at percentile(50);
+    request_latency_p95:  wall_time(routeRequest) at percentile(95);
+    request_latency_p99:  wall_time(routeRequest) at percentile(99);
+    request_throughput:   call_count(routeRequest) at rate(1s);
+    request_error_rate:   error_count(routeRequest) / call_count(routeRequest);
+    active_connections:   call_count(handleConnection) at sum;
+    bytes_read_avg:       heap_bytes(parseRequest) at avg;
+    handler_stack_depth:  stack_depth(handleConnection) at max;
+}
+
+watch RouteMetrics {
+    health_latency_p99:   wall_time(handleHealth) at percentile(99);
+    root_latency_p99:     wall_time(handleRoot) at percentile(99);
+    users_get_latency_p99: wall_time(handleGetUsers) at percentile(99);
+    users_post_latency_p99: wall_time(handleCreateUser) at percentile(99);
+}
+
+// ──────────────────────────────────────────
+// Probes — sampled request tracing.
+// Read-only snapshots; never mutate state.
+// ──────────────────────────────────────────
+
+probe RequestProbe on routeRequest {
+    capture:     [req.id, req.method, req.path, result.status];
+    sample_rate: 0.005;
+    when:        always;
+}
+
+probe SlowRequestProbe on routeRequest {
+    capture:     [req.id, req.method, req.path, req.body.len()];
+    sample_rate: 1.0;
+    when:        on_slow(500ms);
+}
+
+probe ErrorRequestProbe on routeRequest {
+    capture:     [req.id, req.method, req.path, req.body.len()];
+    sample_rate: 1.0;
+    when:        on_error;
+}
+
+probe ConnectionProbe on handleConnection {
+    capture:     [conn, result.is_ok()];
+    sample_rate: 0.001;
+    when:        always;
+}

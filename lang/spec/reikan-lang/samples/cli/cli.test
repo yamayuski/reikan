@@ -1,0 +1,129 @@
+test module cli.tests;
+
+import cli.logic;
+import cli.types;
+
+// ──────────────────────────────────────────
+// parseArgs
+// ──────────────────────────────────────────
+
+test "parseArgs with no args returns Help" {
+    let args: [CliArg] := [];
+    let cmd: Command := parseArgs(args);
+    match cmd {
+        Command::Help => {}
+        _ => { assert false, "expected Help"; }
+    }
+}
+
+test "parseArgs with --help returns Help" {
+    let args: [CliArg] := [CliArg::from("--help")];
+    let cmd: Command := parseArgs(args);
+    match cmd {
+        Command::Help => {}
+        _ => { assert false, "expected Help"; }
+    }
+}
+
+test "parseArgs with --version returns Version" {
+    let args: [CliArg] := [CliArg::from("--version")];
+    let cmd: Command := parseArgs(args);
+    match cmd {
+        Command::Version => {}
+        _ => { assert false, "expected Version"; }
+    }
+}
+
+test "parseArgs with echo and text returns Echo" {
+    let args: [CliArg] := [CliArg::from("echo"), CliArg::from("hello world")];
+    let cmd: Command := parseArgs(args);
+    match cmd {
+        Command::Echo(text) => {
+            assert text == CliArg::from("hello world");
+        }
+        _ => { assert false, "expected Echo"; }
+    }
+}
+
+test "parseArgs with echo and no text returns Unknown" {
+    let args: [CliArg] := [CliArg::from("echo")];
+    let cmd: Command := parseArgs(args);
+    match cmd {
+        Command::Unknown(_) => {}
+        _ => { assert false, "expected Unknown"; }
+    }
+}
+
+test "parseArgs with greet and name returns Greet" {
+    let args: [CliArg] := [CliArg::from("greet"), CliArg::from("Alice")];
+    let cmd: Command := parseArgs(args);
+    match cmd {
+        Command::Greet(name) => {
+            assert name == CliArg::from("Alice");
+        }
+        _ => { assert false, "expected Greet"; }
+    }
+}
+
+test "parseArgs with unknown command returns Unknown" {
+    let args: [CliArg] := [CliArg::from("bogus")];
+    let cmd: Command := parseArgs(args);
+    match cmd {
+        Command::Unknown(_) => {}
+        _ => { assert false, "expected Unknown"; }
+    }
+}
+
+// ──────────────────────────────────────────
+// dispatch
+// ──────────────────────────────────────────
+
+test "dispatch Help returns success with usage text" {
+    let result: CliResult := dispatch(Command::Help);
+    assert result.exit_code().is_success();
+    match result {
+        CliResult::Success(msg) => { assert msg.len() > 0; }
+        _ => { assert false, "expected Success"; }
+    }
+}
+
+test "dispatch Unknown returns failure" {
+    let result: CliResult := dispatch(Command::Unknown(CliArg::from("bogus")));
+    assert !result.exit_code().is_success();
+    match result {
+        CliResult::Failure(_, msg) => { assert msg.len() > 0; }
+        _ => { assert false, "expected Failure"; }
+    }
+}
+
+test "dispatch Echo returns the input text" {
+    let input: CliArg := CliArg::from("hello");
+    let result: CliResult := dispatch(Command::Echo(input));
+    assert result.exit_code().is_success();
+    match result {
+        CliResult::Success(msg) => {
+            assert msg.into_inner() == "hello";
+        }
+        _ => { assert false, "expected Success"; }
+    }
+}
+
+test "dispatch Greet returns greeting message" {
+    let name: CliArg := CliArg::from("Alice");
+    let result: CliResult := dispatch(Command::Greet(name));
+    assert result.exit_code().is_success();
+    match result {
+        CliResult::Success(msg) => {
+            assert msg.into_inner() == "Hello, Alice!";
+        }
+        _ => { assert false, "expected Success"; }
+    }
+}
+
+// ──────────────────────────────────────────
+// Benchmarks
+// ──────────────────────────────────────────
+
+bench "dispatch Echo throughput" {
+    dispatch(Command::Echo(CliArg::from("benchmark input text")));
+}

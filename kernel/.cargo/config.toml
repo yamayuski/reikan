@@ -1,0 +1,11 @@
+[build]
+# Build for bare-metal x86_64 (no OS, no stdlib).
+target = "x86_64-unknown-none"
+
+[target.x86_64-unknown-none]
+rustflags = [
+    # Use our custom linker script.
+    "-C", "link-arg=-Tlinker.ld",
+    # Generate a static (non-PIE) executable so GRUB can load it at 1 MiB.
+    "-C", "relocation-model=static",
+]

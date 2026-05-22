@@ -1,0 +1,19 @@
+[package]
+name = "reikan-kernel"
+version = "0.1.0"
+edition = "2021"
+description = "Reikan kernel — minimal x86_64 bootstrap (Rust placeholder for Reikan-lang)"
+license = "SEE LICENSE IN ../LICENSE"
+
+# This is a no_std freestanding binary targeting bare-metal x86_64.
+# Panic must abort because unwinding requires runtime support we do not have.
+
+[profile.dev]
+panic = "abort"
+opt-level = 1
+
+[profile.release]
+panic = "abort"
+opt-level = "s"
+lto = true
+codegen-units = 1

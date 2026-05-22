@@ -123,6 +123,27 @@
   - Multi-authority approval for irreversible operations
 - 4.7 Audit and accountability (see §26 for detail)
 - 4.8 Root of trust and secure boot chain
+- 4.9 Autonomous Vulnerability Defense System
+  - 4.9.1 Design charter: defend before being attacked
+  - 4.9.2 AI-driven real-time vulnerability intelligence ingestion (CVE feeds, SNS, security advisories)
+  - 4.9.3 Automated threat triage and severity classification
+  - 4.9.4 Autonomous mitigation generation and hot-patching pipeline
+  - 4.9.5 Human-in-the-loop escalation for high-impact or irreversible mitigations
+  - 4.9.6 Response time goal: vulnerability-to-mitigation faster than human reaction
+  - 4.9.7 Mitigation confidence thresholds and rollback guarantees
+- 4.10 Supply Chain Security
+  - 4.10.1 Cryptographic provenance verification for all build inputs
+  - 4.10.2 Reproducible and hermetic build pipeline
+  - 4.10.3 Dependency integrity monitoring and continuous re-verification
+  - 4.10.4 AI-assisted dependency risk scoring (typosquatting, maintainer compromise, hidden backdoors)
+  - 4.10.5 Build environment attestation and isolation
+  - 4.10.6 Runtime artifact verification at load time
+- 4.11 Kernel-Level Proactive Defense
+  - 4.11.1 Continuous kernel integrity monitoring (live invariant checking)
+  - 4.11.2 Automated patch application for kernel CVEs without reboot where possible
+  - 4.11.3 Exploit technique fingerprinting and preemptive hardening
+  - 4.11.4 Speculative execution and side-channel isolation controls
+  - 4.11.5 Kernel self-attestation and anomaly detection
 
 ---
 

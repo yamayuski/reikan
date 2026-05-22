@@ -4,6 +4,12 @@ This directory contains in-depth design documents for individual Reikan subsyste
 
 Design documents are living documents that evolve with the architecture. They expand on the high-level outline in [architecture-outline.md](../architecture-outline.md) with detailed decisions, data structures, algorithms, and rationale.
 
+## Documents
+
+| Document | Description |
+|---|---|
+| [security-autonomous-defense.md](security-autonomous-defense.md) | Charter and architecture for the AI-driven Autonomous Vulnerability Defense System (AVDS), supply chain security, and kernel-level proactive defense. Japanese version: [security-autonomous-defense.ja.md](security-autonomous-defense.ja.md) |
+
 ## Planned Documents
 
 Documents will be added here as each phase of the project progresses. Expected documents include:
@@ -18,4 +24,5 @@ Documents will be added here as each phase of the project progresses. Expected d
 
 ## Status
 
-No design documents exist yet.
+Design documents are being added as Phase 0 (architecture definition) progresses.
+

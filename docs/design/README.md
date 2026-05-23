@@ -9,6 +9,7 @@ Design documents are living documents that evolve with the architecture. They ex
 | Document | Description |
 |---|---|
 | [security-autonomous-defense.md](security-autonomous-defense.md) | Charter and architecture for the AI-driven Autonomous Vulnerability Defense System (AVDS), supply chain security, and kernel-level proactive defense. Japanese version: [security-autonomous-defense.ja.md](security-autonomous-defense.ja.md) |
+| [supply-chain-package-management.md](supply-chain-package-management.md) | Design for the built-in defensive dependency workflow (`reikan add`), side-effect declarations, transitive approval chain, and source pinning model. Japanese version: [supply-chain-package-management.ja.md](supply-chain-package-management.ja.md) |
 
 ## Planned Documents
 
@@ -25,4 +26,3 @@ Documents will be added here as each phase of the project progresses. Expected d
 ## Status
 
 Design documents are being added as Phase 0 (architecture definition) progresses.
-

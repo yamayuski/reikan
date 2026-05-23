@@ -78,6 +78,40 @@ What is not feasible today:
 
 ---
 
+## Option Analysis: Delegating Isolation to Docker-Compatible Containers
+
+One practical option is to delegate low-level isolation to an existing Docker-compatible container stack and position Reikan as a **container-optimized OS/runtime layer** above it.
+
+### Benefits
+
+- **Faster adoption**: reuse mature OCI/container tooling, image formats, registries, and CI/CD workflows.
+- **Operational familiarity**: users can bootstrap Reikan-hosted workloads with existing platform practices.
+- **Security hardening reuse**: benefit from continuously improved container-runtime defenses and ecosystem tooling.
+
+### Drawbacks
+
+- **Isolation control is indirect**: final enforcement depends on host kernel + container runtime behavior, not purely on Reikan policy.
+- **Cross-OS semantic drift**: Linux/Windows/macOS container behavior and guarantees remain non-identical.
+- **Policy expressiveness ceiling**: Reikan may not be able to enforce every capability/lifecycle invariant if the underlying container substrate lacks equivalent primitives.
+
+### GPU Resource Governance Risk (Important)
+
+Delegating isolation to containers is especially problematic for accelerator governance:
+
+- GPU visibility and scheduling are often mediated by host drivers + runtime plugins, outside Reikan's full control plane.
+- Fine-grained constraints (per-agent VRAM budgets, preemption policy, queue fairness, deterministic accounting) may be partially unavailable or vendor/runtime-specific.
+- Container-level isolation can prevent Reikan from implementing end-to-end, auditable accelerator control guarantees expected from an AI-first OS.
+
+In short, container delegation is useful for portability and onboarding, but it can reduce Reikan's authority over the most critical AI resource domain (GPU/NPU execution control).
+
+### Positioning Guidance
+
+- Keep **bare-metal Reikan** as the primary architecture target for full control, verifiability, and accelerator governance.
+- Treat Docker-compatible deployment as a **transitional/hosted operating mode** with explicitly scoped guarantees.
+- Document that certain guarantees (especially GPU scheduling and isolation semantics) are host/runtime-bound in container-delegated mode.
+
+---
+
 ## Recommendation for Reikan
 
 ### Proposed Direction

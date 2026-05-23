@@ -17,6 +17,7 @@
 | [Redox OS](redox-os/) | Rust ベースのマイクロカーネル OS（非 Linux、部分的 POSIX） | [redox-os.md](redox-os/redox-os.md) · [redox-os.ja.md](redox-os/redox-os.ja.md) |
 | [Theseus OS](theseus-os/) | イントラリンガル・セルベースの研究用 OS（Rust、単一アドレス空間） | [theseus-os.md](theseus-os/theseus-os.md) · [theseus-os.ja.md](theseus-os/theseus-os.ja.md) |
 | [AIOS](aios/) | LLM エージェント・オペレーティングシステム — エージェント中心 OS 層（研究） | [aios.md](aios/aios.md) · [aios.ja.md](aios/aios.ja.md) |
+| [クロスプラットフォームのリソース隔離](cross-platform-isolation/) | Reikan Hosted Runtime を Linux/Windows/macOS で運用する際の Docker 級隔離の実現可能性 | [cross-platform-isolation.md](cross-platform-isolation/cross-platform-isolation.md) · [cross-platform-isolation.ja.md](cross-platform-isolation/cross-platform-isolation.ja.md) |
 
 ### プログラミング言語
 

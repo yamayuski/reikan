@@ -17,6 +17,7 @@ The following products have been surveyed. Each entry provides a summary, simila
 | [Redox OS](redox-os/) | Rust-based microkernel OS (non-Linux, partial POSIX) | [redox-os.md](redox-os/redox-os.md) · [redox-os.ja.md](redox-os/redox-os.ja.md) |
 | [Theseus OS](theseus-os/) | Intralingual, cell-based research OS (Rust, single address space) | [theseus-os.md](theseus-os/theseus-os.md) · [theseus-os.ja.md](theseus-os/theseus-os.ja.md) |
 | [AIOS](aios/) | LLM Agent Operating System — agent-centric OS layer (research) | [aios.md](aios/aios.md) · [aios.ja.md](aios/aios.ja.md) |
+| [Cross-Platform Resource Isolation](cross-platform-isolation/) | Feasibility of Docker-class isolation on Linux/Windows/macOS for a hosted Reikan runtime | [cross-platform-isolation.md](cross-platform-isolation/cross-platform-isolation.md) · [cross-platform-isolation.ja.md](cross-platform-isolation/cross-platform-isolation.ja.md) |
 
 ### Programming Languages
 
